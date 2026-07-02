@@ -51,6 +51,14 @@ subprojects {
                     url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
                     credentials(PasswordCredentials::class.java)
                 }
+                maven {
+                    name = "github"
+                    url = uri("https://maven.pkg.github.com/cl-andro/clauto-refine")
+                    credentials {
+                        username = findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                        password = findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                    }
+                }
             }
         }
         plugins.withId("signing") {
