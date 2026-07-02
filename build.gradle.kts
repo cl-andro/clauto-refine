@@ -55,8 +55,8 @@ subprojects {
                     name = "github"
                     url = uri("https://maven.pkg.github.com/cl-andro/clauto-refine")
                     credentials {
-                        username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
-                        password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                        username = System.getenv("GITHUB_ACTOR")
+                        password = System.getenv("GITHUB_TOKEN")
                     }
                 }
             }
