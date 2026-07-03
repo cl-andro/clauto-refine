@@ -4,7 +4,9 @@ task("clean", type = Delete::class) {
 
 subprojects {
     group = "com.clauto.tools.refine"
-    version = "4.4.0"
+    val rawSuiteVersion = if (project.hasProperty("suiteVersion")) project.property("suiteVersion").toString() else ""
+    val cleanSuiteVersion = if (rawSuiteVersion.startsWith("v")) rawSuiteVersion.substring(1) else rawSuiteVersion
+    version = if (cleanSuiteVersion.isNotEmpty()) cleanSuiteVersion else "4.4.0"
 
     plugins.withId("java") {
         extensions.configure<JavaPluginExtension> {
@@ -63,8 +65,21 @@ subprojects {
         }
         plugins.withId("signing") {
             extensions.configure<SigningExtension> {
-                if (findProperty("signing.gnupg.keyName") != null) {
-                    useGpgCmd()
+                val signingKey = findProperty("signingKey") as? String
+                val signingPassword = findProperty("signingPassword") as? String
+                val secretKeyRingFile = findProperty("signing.secretKeyRingFile") as? String
+                val gnuPgDir = java.io.File(System.getProperty("user.home") + "/.gnupg/private-keys-v1.d")
+
+                val hasGpg = gnuPgDir.isDirectory && (gnuPgDir.list()?.size ?: 0) > 0
+                val hasKeyRing = secretKeyRingFile != null && java.io.File(secretKeyRingFile).exists()
+                val hasInMemory = !signingKey.isNullOrEmpty()
+
+                if (hasGpg || hasKeyRing || hasInMemory) {
+                    if (hasGpg) {
+                        useGpgCmd()
+                    } else if (hasInMemory) {
+                        useInMemoryPgpKeys(signingKey, signingPassword)
+                    }
 
                     plugins.withId("maven-publish") {
                         extensions.configure<PublishingExtension> {
